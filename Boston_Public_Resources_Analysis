@@ -1,0 +1,77 @@
+from pixiedust.display.app import *
+from pixiedust.apps.mapboxBase import *
+
+@PixieApp
+class SFDashboard(MapboxBase):
+    def setup(self):
+        self.mapJSONOptions = {
+          "mapboxtoken": "pk.eyJ1IjoiYXBpc2NoZG8iLCJhIjoiY2o2cXkxMjUxMDMyaTJ3bGEyajFsZ3Y4cSJ9.mL2PT0XH2vrNiDozb7gO0w",
+          "chartsize": "90",
+          "aggregation": "SUM",
+          "rowCount": "500",
+          "handlerId": "mapView",
+          "rendererId": "mapbox",
+          "valueFields": "IncidntNum",
+          "keyFields": "X,Y",
+          "basemap": "light-v9"
+        }
+        self.setLayers([
+        {
+            "name": "Public Schools",
+            "url": "http://bostonopendata-boston.opendata.arcgis.com/datasets/1d9509a8b2fd485d9ad471ba2fdb1f90_0.geojson",
+            "type": "symbol",
+            "layout": {
+                "icon-image": "school-15",
+                "icon-size": 1.5
+            }
+        },
+        {
+            "name": "Zip Codes",
+            "url": "http://bostonopendata-boston.opendata.arcgis.com/datasets/53ea466a189b4f43b3dfb7b38fa7f3b6_1.geojson"
+        },
+        {
+            "name": "Public Libraries",
+            "url": "http://bostonopendata-boston.opendata.arcgis.com/datasets/cb00f9248aa6404ab741071ca3806c0e_6.geojson",
+            "type": "symbol",
+            "layout": {
+                "icon-image": "library-15",
+                "icon-size": 1.5
+            }
+        },
+        {
+            "name": "Police Stations",
+            "url": "http://bostonopendata-boston.opendata.arcgis.com/datasets/e5a0066d38ac4e2abbc7918197a4f6af_6.geojson",
+            "type": "symbol",
+            "layout": {
+                "icon-image": "police-15",
+                "icon-size": 1.5
+            }
+        }
+        ])
+        
+    def formatOptions(self,options):
+        return ';'.join(["{}={}".format(key,value) for (key, value) in iteritems(options)])
+    
+    @route()
+    def mainScreen(self):
+        return """
+<div class="well">
+    <center><span style="font-size:x-large">Analyzing Boston Public Resource Data with PixieDust</span></center>
+</div>
+<div class="row">
+    <div class="form-group col-sm-2" style="padding-right:10px;">
+        <div><strong>Layers</strong></div>
+        {% for layer in this.layers %}
+        <div class="rendererOpt checkbox checkbox-primary">
+            <input type="checkbox" pd_refresh="map{{prefix}}" pd_script="self.toggleLayer({{loop.index0}})">
+            <label>{{layer["name"]}}</label>
+        </div>      
+        {%endfor%}
+    </div>
+    <div class="form-group col-sm-10">
+        <div id="map{{prefix}}" pd_entity pd_options="{{this.formatOptions(this.mapJSONOptions)}}"/>
+    </div>
+</div>
+"""
+    
+SFDashboard().run(incidents,runInDialog="false")
